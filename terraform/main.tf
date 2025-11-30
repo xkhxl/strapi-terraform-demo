@@ -17,9 +17,7 @@ data "aws_vpc" "default" {
   default = true
 }
 
-# -----------------------------------------------------------
-# SECURITY GROUP
-# -----------------------------------------------------------
+
 resource "aws_security_group" "strapi_sg" {
   name        = "strapi-sg"
   description = "Allow SSH, Strapi, and Postgres within SG"
@@ -57,9 +55,6 @@ resource "aws_security_group" "strapi_sg" {
   }
 }
 
-# -----------------------------------------------------------
-# IAM ROLE FOR EC2 (minimal)
-# -----------------------------------------------------------
 data "aws_iam_policy_document" "ec2_assume_role" {
   statement {
     actions = ["sts:AssumeRole"]
@@ -80,9 +75,7 @@ resource "aws_iam_instance_profile" "ec2_profile" {
   role = aws_iam_role.ec2_role.name
 }
 
-# -----------------------------------------------------------
-# AMI
-# -----------------------------------------------------------
+
 data "aws_ami" "ubuntu" {
   most_recent = true
   filter {
@@ -92,9 +85,6 @@ data "aws_ami" "ubuntu" {
   owners = ["099720109477"]
 }
 
-# -----------------------------------------------------------
-# DB (RDS)
-# -----------------------------------------------------------
 resource "aws_db_instance" "strapi_db" {
   allocated_storage      = 20
   engine                 = "postgres"
@@ -109,21 +99,17 @@ resource "aws_db_instance" "strapi_db" {
   vpc_security_group_ids = [aws_security_group.strapi_sg.id]
 }
 
-# -----------------------------------------------------------
-# user-data templating (inject rds endpoint + password into user_data)
-# -----------------------------------------------------------
 locals {
   user_data = templatefile("${path.module}/user_data.tpl", {
     rds_endpoint = aws_db_instance.strapi_db.address,
     db_password  = var.db_password,
     repo_url     = "https://github.com/xkhxl/strapi-terraform-demo.git",
-    key_user     = "ubuntu"
+    key_user     = "ubuntu",
+    REPO_DIR     = "/home/ubuntu/strapi-terraform-demo",
+    DOCKER_DIR   = "/home/ubuntu/strapi-terraform-demo/docker"
   })
 }
 
-# -----------------------------------------------------------
-# EC2 instance (uses templated user_data)
-# -----------------------------------------------------------
 resource "aws_instance" "strapi_server" {
   ami                    = data.aws_ami.ubuntu.id
   instance_type          = var.ec2_instance_type
@@ -131,10 +117,8 @@ resource "aws_instance" "strapi_server" {
   vpc_security_group_ids = [aws_security_group.strapi_sg.id]
   key_name               = var.ec2_key_name
 
-  # the rendered user_data (templatefile variables injected above)
   user_data = local.user_data
 
-  # ensure the DB is created first so address is available
   depends_on = [aws_db_instance.strapi_db]
 
   tags = {
@@ -142,9 +126,6 @@ resource "aws_instance" "strapi_server" {
   }
 }
 
-# -----------------------------------------------------------
-# OUTPUTS
-# -----------------------------------------------------------
 output "ec2_public_ip" {
   value = aws_instance.strapi_server.public_ip
 }

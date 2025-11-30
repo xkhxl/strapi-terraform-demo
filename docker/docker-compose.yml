@@ -1,3 +1,4 @@
+version: "3.8"
 services:
   strapi:
     image: strapi/strapi:latest
@@ -13,6 +14,8 @@ services:
       DATABASE_PASSWORD: ${DB_PASSWORD}
       DATABASE_SSL: "true"
       PGSSLMODE: "require"
-      DATABASE_SSL__REJECT_UNAUTHORIZED: "false"
+      NODE_EXTRA_CA_CERTS: "/etc/ssl/certs/rds-global-bundle.pem"
+      DATABASE_SSL__REJECT_UNAUTHORIZED: "true"
     volumes:
       - ./strapi-data:/srv/strapi
+      - /home/ubuntu/rds-ca/global-bundle.pem:/etc/ssl/certs/rds-global-bundle.pem:ro
