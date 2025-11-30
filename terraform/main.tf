@@ -86,13 +86,13 @@ data "aws_ami" "ubuntu" {
 }
 
 resource "aws_db_instance" "strapi_db" {
-  allocated_storage      = 20
-  engine                 = "postgres"
-  instance_class         = var.rds_instance_class
+  allocated_storage = 20
+  engine            = "postgres"
+  instance_class    = var.rds_instance_class
 
-  db_name                = var.db_name
-  username               = var.db_user
-  password               = var.db_password
+  db_name  = var.db_name
+  username = var.db_user
+  password = var.db_password
 
   skip_final_snapshot    = true
   publicly_accessible    = true
@@ -106,9 +106,11 @@ locals {
     repo_url     = "https://github.com/xkhxl/strapi-terraform-demo.git",
     key_user     = "ubuntu",
     REPO_DIR     = "/home/ubuntu/strapi-terraform-demo",
-    DOCKER_DIR   = "/home/ubuntu/strapi-terraform-demo/docker"
+    DOCKER_DIR   = "/home/ubuntu/strapi-terraform-demo/docker",
+    RDS_CA_DIR   = "/home/ubuntu/rds-ca"
   })
 }
+
 
 resource "aws_instance" "strapi_server" {
   ami                    = data.aws_ami.ubuntu.id
