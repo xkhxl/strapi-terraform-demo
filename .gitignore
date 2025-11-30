@@ -1,5 +1,6 @@
 .terraform/
-terraform/.terraform/
+/terraform/.terraform/
+/terraform/*.tfstate*
 .terraform.lock.hcl
 docker/.env
 docker/strapi-data/
@@ -7,3 +8,4 @@ docker/strapi-data/
 *.tfstate.backup
 terraform/*.tfstate
 terraform/*.tfstate.backup
+.env
